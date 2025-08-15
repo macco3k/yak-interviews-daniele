@@ -1,0 +1,77 @@
+### POST new webhook definition for the alert
+POST {{baseUrl}}/v1/outgoing-webhooks
+Content-Type: application/json
+Authorization: Bearer {{CORALOGIX_API_KEY}}
+
+# Why is the payload a string!
+{
+  "data": {
+    "type": "GENERIC",
+    "name": "AWS Webhook 2",
+    "url": "https://bptfmrfiz7.execute-api.eu-north-1.amazonaws.com/default/fn-webhook",
+    "genericWebhook": {
+      "method": "POST",
+      "uuid": "{{$uuid}}",
+      "payload": "{\"alert_id\":\"$ALERT_ID\",\"name\":\"$ALERT_NAME\",\"description\":\"$ALERT_DESCRIPTION\",\"threshold\":\"$ALERT_THRESHOLD\",\"timewindow\":\"$ALERT_TIMEWINDOW_MINUTES\",\"group_by_labels\":\"$ALERT_GROUPBY_LABELS\",\"alert_action\":\"$ALERT_ACTION\",\"alert_url\":\"$ALERT_URL\",\"log_url\":\"$LOG_URL\",\"icon_url\":\"$CORALOGIX_ICON_URL\",\"service\":\"$SERVICE\",\"duration\":\"$DURATION\",\"errors\":\"$ERRORS\",\"spans\":\"$SPANS\",\"fields\":[{\"key\":\"team\",\"value\":\"$TEAM_NAME\"},{\"key\":\"application\",\"value\":\"$APPLICATION_NAME\"},{\"key\":\"subsystem\",\"value\":\"$SUBSYSTEM_NAME\"},{\"key\":\"severity\",\"value\":\"$EVENT_SEVERITY\"},{\"key\":\"priority\",\"value\":\"$ALERT_PRIORITY\"},{\"key\":\"severityLowercase\",\"value\":\"$EVENT_SEVERITY_LOWERCASE\"},{\"key\":\"computer\",\"value\":\"$COMPUTER_NAME\"},{\"key\":\"ipAddress\",\"value\":\"$IP_ADDRESS\"},{\"key\":\"timestamp\",\"value\":\"$EVENT_TIMESTAMP\"},{\"key\":\"hitCount\",\"value\":\"$HIT_COUNT\"},{\"key\":\"text\",\"value\":\"$LOG_TEXT\"},{\"key\":\"Custom field\",\"value\":\"$JSON_KEY\"},{\"key\":\"Group-by Field1\",\"value\":\"$GROUP_BY_FIELD_1\"},{\"key\":\"Group-by Value1\",\"value\":\"$GROUP_BY_VALUE_1\"},{\"key\":\"Group-by Field2\",\"value\":\"$GROUP_BY_FIELD_2\"},{\"key\":\"Group-by Value2\",\"value\":\"$GROUP_BY_VALUE_2\"},{\"key\":\"metricKey\",\"value\":\"$METRIC_KEY\"},{\"key\":\"metricOperator\",\"value\":\"$METRIC_OPERATOR\"},{\"key\":\"timeframe\",\"value\":\"$TIMEFRAME\"},{\"key\":\"timeframePercentageOverThreshold\",\"value\":\"$TIMEFRAME_OVER_THRESHOLD\"},{\"key\":\"metricCriteria\",\"value\":\"$METRIC_CRITERIA\"},{\"key\":\"ratioQueryOne\",\"value\":\"$RATIO_QUERY_ONE\"},{\"key\":\"ratioQueryTwo\",\"value\":\"$RATIO_QUERY_TWO\"},{\"key\":\"ratioTimeframe\",\"value\":\"$RATIO_TIMEFRAME\"},{\"key\":\"ratioGroupByKeys\",\"value\":\"$RATIO_GROUP_BY_KEYS\"},{\"key\":\"ratioGroupByTable\",\"value\":\"$RATIO_GROUP_BY_TABLE\"},{\"key\":\"uniqueCountValuesList\",\"value\":\"$UNIQUE_COUNT_VALUES_LIST\"},{\"key\":\"newValueTrackedKey\",\"value\":\"$NEW_VALUE_TRACKED_KEY\"},{\"key\":\"metaLabels\",\"value\":\"$META_LABELS\"},{\"key\":\"timestampMs\",\"value\":\"$EVENT_TIMESTAMP_MS\"},{\"key\":\"timestampISO\",\"value\":\"$EVENT_TIMESTAMP_ISO\"},{\"key\":\"threadId\",\"value\":\"$THREAD_ID\"},{\"key\":\"category\",\"value\":\"$CATEGORY\"},{\"key\":\"queryText\",\"value\":\"$QUERY_TEXT\"},{\"key\":\"definedRatioThreshold\",\"value\":\"$DEFINED_RATIO_THRESHOLD\"},{\"key\":\"metaLabelsJson\",\"value\":\"$META_LABELS_JSON\"},{\"key\":\"metaLabelsList\",\"value\":\"$META_LABELS_LIST\"},{\"key\":\"opsgeniePriority\",\"value\":\"$OPSGENIE_PRIORITY\"},{\"key\":\"companyId\",\"value\":\"$COMPANY_ID\"},{\"key\":\"dedupKey\",\"value\":\"$DEDUP_KEY\"},{\"key\":\"alertUniqueIdentifier\",\"value\":\"$ALERT_UNIQUE_IDENTIFIER\"},{\"key\":\"relativeQueryText\",\"value\":\"$RELATIVE_QUERY_TEXT\"},{\"key\":\"actualRatio\",\"value\":\"$ACTUAL_RATIO\"},{\"key\":\"relativeHitCount\",\"value\":\"$RELATIVE_HIT_COUNT\"},{\"key\":\"ratioQueryOne\",\"value\":\"$RATIO_QUERY_ONE\"},{\"key\":\"ratioQueryTwo\",\"value\":\"$RATIO_QUERY_TWO\"},{\"key\":\"ratioTimeframe\",\"value\":\"$RATIO_TIMEFRAME\"},{\"key\":\"ratioGroupByKeys\",\"value\":\"$RATIO_GROUP_BY_KEYS\"},{\"key\":\"ratioGroupByTable\",\"value\":\"$RATIO_GROUP_BY_TABLE\"},{\"key\":\"flowAlertRelatedAlerts\",\"value\":\"$FLOW_ALERT_RELATED_ALERTS\"},{\"key\":\"alertGroupByValues\",\"value\":\"$ALERT_GROUP_BY_VALUES\"}]}"    }
+  }
+}
+
+> {%
+    client.global.set("webhookId", response.body.id)
+ %}
+
+### GET the webhook's external id to use it for the integration with the alert
+GET {{baseUrl}}/v1/outgoing-webhooks/{{webhookId}}
+Authorization: Bearer {{CORALOGIX_API_KEY}}
+
+> {%
+ client.global.set("externalId", response.body.webhook.externalId)
+%}
+
+### POST new alert definition
+POST {{baseUrl}}/v3/alert-defs
+Content-Type: application/json
+Authorization: Bearer {{CORALOGIX_API_KEY}}
+
+{
+  "name": "Persistent errors",
+  "description": "Errors whose frequency does not fade (or even increase) with time",
+  "enabled": true,
+  "priority": "ALERT_DEF_PRIORITY_P5_OR_UNSPECIFIED",
+  "type": "ALERT_DEF_TYPE_LOGS_TIME_RELATIVE_THRESHOLD",
+  "logsTimeRelativeThreshold": {
+    "logsFilter": {
+      "simpleFilter": {
+        "labelFilters": {
+          "applicationName": [
+            {
+              "value": "sample-app",
+              "operation": "LOG_FILTER_OPERATION_TYPE_IS_OR_UNSPECIFIED"
+            }
+          ],
+          "severities": ["LOG_SEVERITY_ERROR"]
+        }
+      }},
+    "rules": [
+      {
+        "condition": {
+          "threshold": 1,
+          "comparedTo": "LOGS_TIME_RELATIVE_COMPARED_TO_PREVIOUS_HOUR_OR_UNSPECIFIED",
+          "conditionType": "LOGS_TIME_RELATIVE_CONDITION_TYPE_MORE_THAN_OR_UNSPECIFIED"
+        },
+        "override": {"priority": "ALERT_DEF_PRIORITY_P5_OR_UNSPECIFIED"}
+      }
+    ],
+    "ignoreInfinity": true
+  },
+  "groupByKeys": ["logRecord.body"],
+  "notificationGroup": {
+    "webhooks": [
+      {
+        "integration": {
+          "integrationId": {{externalId}}
+        }
+      }
+    ]
+  }
+}

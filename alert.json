@@ -1,0 +1,49 @@
+{
+  "name": "Persistent errors",
+  "description": "Errors whose frequency does not fade (or even increase) with time",
+  "enabled": true,
+  "priority": "ALERT_DEF_PRIORITY_P5_OR_UNSPECIFIED",
+  "type": "ALERT_DEF_TYPE_LOGS_TIME_RELATIVE_THRESHOLD",
+  "logsTimeRelativeThreshold": {
+    "logsFilter": {
+      "simpleFilter": {
+        "labelFilters": {
+          "applicationName": [
+            {
+              "value": "sample-app",
+              "operation": "LOG_FILTER_OPERATION_TYPE_IS_OR_UNSPECIFIED"
+            }
+          ],
+          "severities": [
+            "LOG_SEVERITY_ERROR"
+          ]
+        }
+      }
+    },
+    "rules": [
+      {
+        "condition": {
+          "threshold": 1,
+          "comparedTo": "LOGS_TIME_RELATIVE_COMPARED_TO_PREVIOUS_HOUR_OR_UNSPECIFIED",
+          "conditionType": "LOGS_TIME_RELATIVE_CONDITION_TYPE_MORE_THAN_OR_UNSPECIFIED"
+        },
+        "override": {
+          "priority": "ALERT_DEF_PRIORITY_P5_OR_UNSPECIFIED"
+        }
+      }
+    ],
+    "ignoreInfinity": true
+  },
+  "groupByKeys": [
+    "logRecord.body"
+  ],
+  "notificationGroup": {
+    "webhooks": [
+      {
+        "integration": {
+          "integrationId": 0
+        }
+      }
+    ]
+  }
+}
