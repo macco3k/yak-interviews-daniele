@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -44,7 +45,12 @@ func createAlert(apiKey, alertFile string, externalID int) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to send alert creation request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatalf("failed to close alert creation response body: %v", err)
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -38,7 +39,12 @@ func createWebhook(apiKey, webhookFile string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to send webhook creation request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatalf("failed to close webhook creation response body: %v", err)
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -80,7 +86,12 @@ func getWebhookExternalId(apiKey, webhookId string) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("failed to send webhook details request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Fatalf("failed to close webhook details response body: %v", err)
+		}
+	}(resp.Body)
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
