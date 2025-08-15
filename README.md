@@ -40,14 +40,15 @@ While working on the assignment, I used the documentation provided by Coralogix 
 
 ### Design decisions
 
-I went for a cli application to experiment with Go and its packages. I chose to use the [cli](https://github.com/urfave/cli) library for the command line interface as that seems to be one of the most popular one.
-This allowed be to focus on the logic of the assignment, and not on the command line interface implementation details.
+I went for a cli application to experiment with Go and its packages. I chose to use the [cli](https://github.com/urfave/cli) library for the command line interface as that seems to be one of the most popular ones.
+This allowed me to focus on the logic of the assignment, and not on the command line interface implementation details.
 
-I've decided to get the webhook's and alert's definitions from JSON files, as that allows some flexibility and allows the user to easily edit the definitions.
+I've decided to get the webhook's and alert's definitions from JSON files, as that leaves the user free to easily edit the definitions
+without having to struggle with long JSON strings in the command line.
 The api key can also be provided either directly via a flag, or an environment variable, whichever is more convenient.
 
 Not being familiar with Go, I relied on packages to manage tricky bits such as JSON parsing from bytes without having to define structs for the JSON schema.
-The general structure of the application is pretty simple, and boils down to a simple split between the different functions representing the steps of the command:
+The general structure of the application is pretty simple, and boils down to a simple split between the different functions representing the steps of the flow:
 
 - `createWebhook`
 - `getWebhookExternalId`
